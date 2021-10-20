@@ -16,16 +16,16 @@ class Game:
         self.screen = pygame.display.set_mode((448, 560))
         self.clock = pygame.time.Clock()
 
-        self.wallImg = pygame.image.load("src/wall.png").convert()
-        self.data = self.readMazeData("src/mapDefault.txt")
+        self.wallImg = pygame.image.load("wall.png").convert()
+        self.data = self.readMazeData("mapDefault.txt")
 
         self.setBackground()
         self.background = self.constructWalls(self.background)
 
-        self.nodes = NodeGroup("src/mapDefault.txt")
+        self.nodes = NodeGroup("mapDefault.txt")
         self.nodes.setPortalPair((0,17), (27,17))
         self.pacman = Pacman(self.nodes.getStartTempNode())
-        self.pellets = PelletGroup("src/mapDefault.txt")
+        self.pellets = PelletGroup("mapDefault.txt")
         self.ghost = Enemy(self.nodes.getStartTempNode())
 
 

@@ -1,7 +1,7 @@
 from gameConstants import *
 import pygame
 from vector2D import Vector2D
-from constants import *
+from gameConstants import *
 import numpy as np
 
 class Pellet(object):
