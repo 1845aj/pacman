@@ -3,6 +3,7 @@ from pygame.locals import *
 from vector2D import Vector2D
 from gameConstants import *
 from entity import Entity
+from pygame import mixer
 
 
 

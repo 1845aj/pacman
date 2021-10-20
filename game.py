@@ -1,4 +1,5 @@
 import pygame
+from pygame import mixer
 from gameConstants import *
 from pacman import Pacman
 from enemy import Enemy
@@ -21,12 +22,16 @@ class Game:
 
         self.setBackground()
         self.background = self.constructWalls(self.background)
+        self.initialiseSounds()
 
         self.nodes = NodeGroup("mapDefault.txt")
         self.nodes.setPortalPair((0,17), (27,17))
         self.pacman = Pacman(self.nodes.getStartTempNode())
         self.pellets = PelletGroup("mapDefault.txt")
         self.ghost = Enemy(self.nodes.getStartTempNode())
+        
+        self.sGameStart.play()
+        
 
 
     def setBackground(self):
@@ -79,5 +84,12 @@ class Game:
         if pellet:
             self.pellets.numEaten += 1
             self.pellets.pelletList.remove(pellet)
+            self.sChomp.play()
+
+    
+    def initialiseSounds(self):
+        self.sGameStart = mixer.Sound('sounds/soundGameStart.wav')
+        self.sChomp = mixer.Sound('sounds/soundChomp.wav')
+        self.sFruit = mixer.Sound('sounds/soundFruit.wav')
 
     

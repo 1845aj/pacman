@@ -4,6 +4,8 @@ from menu import Menu
 from config import Config
 from game import Game
 
+from pygame import mixer
+
 
 
 def main():
