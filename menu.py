@@ -15,7 +15,10 @@ class Menu:
         self.titleFont = pygame.font.SysFont('Arial', 60)
         self.subTitleFont = pygame.font.SysFont('Arial', 30)
 
-        # initialize UI
+
+
+    # initialize UI
+    def showUI(self, screen):
         self.screen = screen
         screen.fill(GREY1)
         self.drawTitle()
