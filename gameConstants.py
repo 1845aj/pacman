@@ -30,6 +30,9 @@ PELLET = 1
 POWERPELLET = 2
 GHOST = 3
 
+#* types of modes enemy
+
+
 SCATTER = 0
 CHASE = 1
 FREIGHT = 2

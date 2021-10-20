@@ -28,7 +28,9 @@ class Game:
         self.nodes.setPortalPair((0,17), (27,17))
         self.pacman = Pacman(self.nodes.getStartTempNode())
         self.pellets = PelletGroup("mapDefault.txt")
-        self.ghost = Enemy(self.nodes.getStartTempNode())
+        self.ghost = Enemy(self.nodes.getStartTempNode(), self.pacman)
+
+
         
         self.sGameStart.play()
         
