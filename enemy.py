@@ -58,3 +58,14 @@ class Enemy(Entity):
             distances.append(vec.magnitudeSquared())
         index = distances.index(min(distances))
         return directions[index]
+        
+    def startFreight(self):
+        self.mode.setFreightMode()
+        if self.mode.current == FREIGHT:
+            self.setSpeed(50)
+            self.directionMethod = self.randomDirection         
+
+    def normalMode(self):
+        self.setSpeed(100)
+        self.directionMethod = self.goalDirection
+
