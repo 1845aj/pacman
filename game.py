@@ -2,10 +2,11 @@ import pygame
 from pygame import mixer
 from gameConstants import *
 from pacman import Pacman
-from enemy import Enemy
 from nodes import Node, NodeGroup
 import numpy as np
 from pellets import PelletGroup
+from enemy import *
+from pause import Pause
 
 #? This is the main game object. The game state is set up in the constructor.
 #? Maze data is pulled from a text file and the map is build from that data
@@ -16,6 +17,8 @@ class Game:
         self.background = None
         self.screen = pygame.display.set_mode((448, 560))
         self.clock = pygame.time.Clock()
+        self.pause = Pause(True)
+    
 
         self.wallImg = pygame.image.load("wall.png").convert()
         self.data = self.readMazeData("mapDefault.txt")
@@ -26,11 +29,40 @@ class Game:
 
         self.nodes = NodeGroup("mapDefault.txt")
         self.nodes.setPortalPair((0,17), (27,17))
-        self.pacman = Pacman(self.nodes.getStartTempNode())
+        homekey = self.nodes.createHomeNodes(11.5, 14)
+        self.nodes.connectHomeNodes(homekey, (12,14), LEFT)
+        self.nodes.connectHomeNodes(homekey, (15,14), RIGHT)
+        self.pacman = Pacman(self.nodes.getNodeFromTiles(15, 26))
         self.pellets = PelletGroup("mapDefault.txt")
-        self.ghost = Enemy(self.nodes.getStartTempNode(), self.pacman)   
+        self.ghosts = GhostGroup(self.nodes.getStartTempNode(), self.pacman)
+        self.ghosts.blinky.setStartNode(self.nodes.getNodeFromTiles(2+11.5, 0+14))
+        self.ghosts.pinky.setStartNode(self.nodes.getNodeFromTiles(2+11.5, 3+14))
+        self.ghosts.inky.setStartNode(self.nodes.getNodeFromTiles(0+11.5, 3+14))
+        self.ghosts.clyde.setStartNode(self.nodes.getNodeFromTiles(4+11.5, 3+14))
+        spawnkey = self.nodes.constructKey(2+11.5, 3+14)
+        self.ghosts.setSpawnNode(self.nodes.nodesLUT[spawnkey])
         self.sGameStart.play()
+        self.level = 0
+        self.lives = 5
 
+    def restartGame(self):
+        self.lives = 5
+        self.level = 0
+        self.pause.paused = True
+        self.fruit = None
+        self.startGame()
+
+    def resetLevel(self):
+        self.pause.paused = True
+        self.pacman.reset()
+        self.ghosts.reset()
+        self.fruit = None
+
+    def nextLevel(self):
+        self.showEntities()
+        self.level += 1
+        self.pause.paused = True
+        self.startGame()
 
     def setBackground(self):
         self.background = pygame.surface.Surface((640,640)).convert()
@@ -38,27 +70,61 @@ class Game:
 
 
     def update(self):
-        dt = self.clock.tick(30) / 1000.0
-        self.pacman.update(dt)
-        self.pellets.update(dt)
-        self.ghost.update(dt)
-        self.checkPelletEvents()
-        self.checkEvents()
-        self.render()
+            dt = self.clock.tick(30) / 1000.0       
+            self.pellets.update(dt)
+            if not self.pause.paused:
+                self.pacman.update(dt)
+                self.ghosts.update(dt)        
+                self.checkPelletEvents()
+                self.checkGhostEvents()
+            afterPauseMethod = self.pause.update(dt)
+            if afterPauseMethod is not None:
+                afterPauseMethod()
+            self.checkEvents()
+            self.render()
+
+        
+    def checkGhostEvents(self):
+            for ghost in self.ghosts:
+                if self.pacman.collideGhost(ghost):
+                    if ghost.mode.current is FREIGHT:
+                        self.pacman.visible = False
+                        ghost.visible = False
+                        self.pause.setPause(pauseTime=1, func=self.showEntities)
+                        ghost.startSpawn()
+                    elif ghost.mode.current is not SPAWN:
+                        if self.pacman.alive:
+                            self.lives -=  1
+                            self.pacman.die()
+                            self.ghosts.hide()
+                            if self.lives <= 0:
+                                self.pause.setPause(pauseTime=3, func=self.restartGame)
+                            else:
+                                self.pause.setPause(pauseTime=3, func=self.resetLevel)
+
+
+
 
 
     def checkEvents(self):
         for event in pygame.event.get():
-            if event.type == pygame.QUIT:
+            if event.type == QUIT:
                 exit()
-
+            elif event.type == KEYDOWN:
+                if event.key == K_SPACE:
+                    if self.pacman.alive:
+                        self.pause.setPause(playerPaused=True)
+                        if not self.pause.paused:
+                            self.showEntities()
+                        else:
+                            self.hideEntities()
 
     def render(self):
         self.screen.blit(self.background, (0, 0))
         self.nodes.render(self.screen)
         self.pellets.render(self.screen)
         self.pacman.render(self.screen)
-        self.ghost.render(self.screen)
+        self.ghosts.render(self.screen)
         pygame.display.update()
 
 
@@ -83,7 +149,12 @@ class Game:
             self.pellets.numEaten += 1
             self.pellets.pelletList.remove(pellet)
             if pellet.name == POWERPELLET:
-               self.ghost.startFreight()
+               self.ghosts.startFreight()
+            if self.pellets.isEmpty():
+               self.hideEntities()
+               self.pause.setPause(pauseTime=3, func=self.nextLevel)
+
+
 
 
     def initialiseSounds(self):
@@ -91,4 +162,10 @@ class Game:
         self.sChomp = mixer.Sound('sounds/soundChomp.wav')
         self.sFruit = mixer.Sound('sounds/soundFruit.wav')
 
-    
+    def showEntities(self):
+        self.pacman.visible = True
+        self.ghosts.show()
+
+    def hideEntities(self):
+        self.pacman.visible = False
+        self.ghosts.hide()

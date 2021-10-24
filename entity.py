@@ -15,13 +15,28 @@ class Entity(object):
         self.radius = 10
         self.collideRadius = 5
         self.color = WHITE
-        self.node = node
-        self.setPosition()
-        self.target = node
+       
         self.visible = True
         self.disablePortal = False
         self.goal = None
         self.directionMethod = self.randomDirection
+        self.setStartNode(node)
+        self.image = None
+
+
+    
+    def setStartNode(self, node):
+        self.node = node
+        self.startNode = node
+        self.target = node
+        self.setPosition()
+
+    def reset(self):
+        self.setStartNode(self.startNode)
+        self.direction = STOP
+        self.speed = 100
+        self.visible = True
+    
 
 
     def setPosition(self):
@@ -96,7 +111,11 @@ class Entity(object):
         if self.overshotTarget():
             self.node = self.target
             directions = self.validDirections()
-            direction = self.directionMethod(directions)   
+            direction = self.directionMethod(directions)
+
+
+            
+               
             if not self.disablePortal:
                 if self.node.neighbors[PORTAL] is not None:
                     self.node = self.node.neighbors[PORTAL]
@@ -107,6 +126,15 @@ class Entity(object):
                 self.target = self.getNewTarget(self.direction)
             
             self.setPosition()
+
+
+    def setBetweenNodes(self, direction):
+        if self.node.neighbors[direction] is not None:
+            self.target = self.node.neighbors[direction]
+            self.position = (self.node.position + self.target.position) 
+
+
+    
 
 
     
