@@ -41,9 +41,12 @@ class Game:
         self.ghosts.clyde.setStartNode(self.nodes.getNodeFromTiles(4+11.5, 3+14))
         spawnkey = self.nodes.constructKey(2+11.5, 3+14)
         self.ghosts.setSpawnNode(self.nodes.nodesLUT[spawnkey])
-        self.sGameStart.play()
+        # self.sGameStart.play()
         self.level = 0
         self.lives = 5
+
+        # UI Text
+        self.UIFont = pygame.font.SysFont('Arial', 30)
 
     def restartGame(self):
         self.lives = 5
@@ -95,14 +98,15 @@ class Game:
                     elif ghost.mode.current is not SPAWN:
                         if self.pacman.alive:
                             self.lives -=  1
+                            print(f'Lives left: {self.lives}')
                             self.pacman.die()
                             self.ghosts.hide()
                             if self.lives <= 0:
-                                self.pause.setPause(pauseTime=3, func=self.restartGame)
+                                self.pause.setPause(pauseTime=1, func=self.restartGame)
                             else:
-                                self.pause.setPause(pauseTime=3, func=self.resetLevel)
+                                self.pause.setPause(pauseTime=1, func=self.resetLevel)
 
-
+#! Change pause time back to 3.
 
 
 
@@ -125,6 +129,8 @@ class Game:
         self.pellets.render(self.screen)
         self.pacman.render(self.screen)
         self.ghosts.render(self.screen)
+
+        self.drawLifeCounter()
         pygame.display.update()
 
 
@@ -169,3 +175,13 @@ class Game:
     def hideEntities(self):
         self.pacman.visible = False
         self.ghosts.hide()
+
+
+    #* UI Stuff
+    def drawLifeCounter(self):
+        screenWidth = self.screen.get_width()
+        screenHeight = self.screen.get_height()
+        renderText = "Lives: " + str(self.lives)
+        livesText = self.UIFont.render(renderText , True , (255,255,255))
+        self.screen.blit(livesText, (screenWidth-200, screenHeight-30))
+        
