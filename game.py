@@ -42,8 +42,11 @@ class Game:
         spawnkey = self.nodes.constructKey(2+11.5, 3+14)
         self.ghosts.setSpawnNode(self.nodes.nodesLUT[spawnkey])
         # self.sGameStart.play()
+
+        #* Game Session Data
         self.level = 0
         self.lives = 5
+        self.score = 0
 
         # UI Text
         self.UIFont = pygame.font.SysFont('Arial', 30)
@@ -98,7 +101,6 @@ class Game:
                     elif ghost.mode.current is not SPAWN:
                         if self.pacman.alive:
                             self.lives -=  1
-                            print(f'Lives left: {self.lives}')
                             self.pacman.die()
                             self.ghosts.hide()
                             if self.lives <= 0:
@@ -130,7 +132,7 @@ class Game:
         self.pacman.render(self.screen)
         self.ghosts.render(self.screen)
 
-        self.drawLifeCounter()
+        self.drawUI()
         pygame.display.update()
 
 
@@ -154,11 +156,13 @@ class Game:
         if pellet:
             self.pellets.numEaten += 1
             self.pellets.pelletList.remove(pellet)
+            self.score += 10
             if pellet.name == POWERPELLET:
-               self.ghosts.startFreight()
+                self.score +=50
+                self.ghosts.startFreight()
             if self.pellets.isEmpty():
-               self.hideEntities()
-               self.pause.setPause(pauseTime=3, func=self.nextLevel)
+                self.hideEntities()
+                self.pause.setPause(pauseTime=3, func=self.nextLevel)
 
 
 
@@ -178,10 +182,14 @@ class Game:
 
 
     #* UI Stuff
-    def drawLifeCounter(self):
-        screenWidth = self.screen.get_width()
-        screenHeight = self.screen.get_height()
-        renderText = "Lives: " + str(self.lives)
-        livesText = self.UIFont.render(renderText , True , (255,255,255))
-        self.screen.blit(livesText, (screenWidth-200, screenHeight-30))
+    def drawUI(self):
+        livesStr = "Lives: " + str(self.lives)
+        livesText = self.UIFont.render(livesStr , True , (50,200,50))
+
+        scoreStr = "Score: " + str(self.score)
+        scoreText = self.UIFont.render(scoreStr , True , (50,200,50))
+
+        self.screen.blit(scoreText, (0, 0))
+        self.screen.blit(livesText, (200, 0))
+        
         
