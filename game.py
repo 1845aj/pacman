@@ -14,11 +14,13 @@ from pause import Pause
 
 class Game:
     def __init__(self, screen):
+        self.reset()
+
+    def reset(self):
         self.background = None
         self.screen = pygame.display.set_mode((448, 560))
         self.clock = pygame.time.Clock()
         self.pause = Pause(True)
-    
 
         self.wallImg = pygame.image.load("wall.png").convert()
         self.data = self.readMazeData("mapDefault.txt")
@@ -42,21 +44,22 @@ class Game:
         spawnkey = self.nodes.constructKey(2+11.5, 3+14)
         self.ghosts.setSpawnNode(self.nodes.nodesLUT[spawnkey])
         # self.sGameStart.play()
-
         #* Game Session Data
         self.level = 0
-        self.lives = 5
+        self.lives = 2
         self.score = 0
 
         # UI Text
         self.UIFont = pygame.font.SysFont('Arial', 30)
+
+
 
     def restartGame(self):
         self.lives = 5
         self.level = 0
         self.pause.paused = True
         self.fruit = None
-        self.startGame()
+        self.reset()
 
     def resetLevel(self):
         self.pause.paused = True
@@ -68,7 +71,7 @@ class Game:
         self.showEntities()
         self.level += 1
         self.pause.paused = True
-        self.startGame()
+        self.reset()
 
     def setBackground(self):
         self.background = pygame.surface.Surface((640,640)).convert()
