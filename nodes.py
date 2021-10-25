@@ -22,7 +22,6 @@ class Node(object):
 
 class NodeGroup(object):
     def __init__(self, level):
-        # self.nodeList = []
         self.level = level
         self.nodesLUT = {}
         self.nodeSymbols = ['+', 'P', 'n']
@@ -33,12 +32,6 @@ class NodeGroup(object):
         self.connectVertically(data)
         self.homekey = None
 
-    
-    #? This renders the nodes (for testing)
-    def render(self, screen):
-        pass
-        # for node in self.nodesLUT.values():
-        #     node.render(screen)
 
 
     #? uses numpy function to load the textfile
@@ -108,7 +101,7 @@ class NodeGroup(object):
         nodes = list(self.nodesLUT.values())
         return nodes[0]
 
-    #! This is broken for now
+    
     def setPortalPair(self, pair1, pair2):
         key1 = self.constructKey(*pair1)
         key2 = self.constructKey(*pair2)

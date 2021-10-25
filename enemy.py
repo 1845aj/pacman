@@ -6,7 +6,7 @@ from modes import ModeController
 from vector2D import Vector2D
 from numpy import *
 class Enemy(Entity):
-    def __init__(self, node, pacman=None, blinky=None):
+    def __init__(self, node, pacman=None, enemy1=None):
         Entity.__init__(self, node)
         self.name = GHOST
         self.points = 200
@@ -14,13 +14,13 @@ class Enemy(Entity):
         self.directionMethod = self.goalDirection
         self.pacman = pacman
         self.mode = ModeController(self)
-        self.blinky = blinky
+        self.enemy1 = enemy1
         self.homeNode = node
 
     def randomDirection(self, directions):
             return directions[randint(0, len(directions)-1)]
 
-    #? update() for enemy, similar to pacman but uses a rng to choose a direction
+    #? update() for enemy, similar to pacman but uses rng to choose a direction
     def update(self, dt):
         self.position += self.directions[self.direction]*self.speed*dt
          
@@ -52,7 +52,6 @@ class Enemy(Entity):
     def chase(self):
         self.goal = self.pacman.position
 
-    
     def goalDirection(self, directions):
         distances = []
         for direction in directions:
@@ -90,16 +89,16 @@ class Enemy(Entity):
         self.directionMethod = self.goalDirection
 
 
-class Blinky(Enemy):
-    def __init__(self, node, pacman=None, blinky=None):
-        Enemy.__init__(self, node, pacman, blinky)
-        self.name = BLINKY
+class Enemy1(Enemy):
+    def __init__(self, node, pacman=None, enemy1=None):
+        Enemy.__init__(self, node, pacman, enemy1)
+        self.name = ENEMY1
         self.color = RED
 
-class Pinky(Enemy):
-    def __init__(self, node, pacman=None, blinky=None):
-        Enemy.__init__(self, node, pacman, blinky)
-        self.name = PINKY
+class Enemy2(Enemy):
+    def __init__(self, node, pacman=None, enemy1=None):
+        Enemy.__init__(self, node, pacman, enemy1)
+        self.name = ENEMY2
         self.color = PINK
 
     def scatter(self):
@@ -108,10 +107,10 @@ class Pinky(Enemy):
     def chase(self):
         self.goal = self.pacman.position + self.pacman.directions[self.pacman.direction] * TILEWIDTH * 4
 
-class Inky(Enemy):
-    def __init__(self, node, pacman=None, blinky=None):
-        Enemy.__init__(self, node, pacman, blinky)
-        self.name = INKY
+class Enemy3(Enemy):
+    def __init__(self, node, pacman=None, enemy1=None):
+        Enemy.__init__(self, node, pacman, enemy1)
+        self.name = ENEMY3
         self.color = TEAL
 
     def scatter(self):
@@ -119,13 +118,13 @@ class Inky(Enemy):
 
     def chase(self):
         vec1 = self.pacman.position + self.pacman.directions[self.pacman.direction] * TILEWIDTH * 2
-        vec2 = (vec1 - self.blinky.position) * 2
-        self.goal = self.blinky.position + vec2
+        vec2 = (vec1 - self.enemy1.position) * 2
+        self.goal = self.enemy1.position + vec2
 
-class Clyde(Enemy):
-    def __init__(self, node, pacman=None, blinky=None):
-        Enemy.__init__(self, node, pacman, blinky)
-        self.name = CLYDE
+class Enemy4(Enemy):
+    def __init__(self, node, pacman=None, enemy1=None):
+        Enemy.__init__(self, node, pacman, enemy1)
+        self.name = ENEMY4
         self.color = ORANGE
 
     def scatter(self):
@@ -143,11 +142,11 @@ class Clyde(Enemy):
 
 class GhostGroup(object):
     def __init__(self, node, pacman):
-        self.blinky = Blinky(node, pacman)
-        self.pinky = Pinky(node, pacman)
-        self.inky = Inky(node, pacman, self.blinky)
-        self.clyde = Clyde(node, pacman)
-        self.ghosts = [self.blinky, self.pinky, self.inky, self.clyde]
+        self.enemy1 = Enemy1(node, pacman)
+        self.enemy2 = Enemy2(node, pacman)
+        self.enemy3 = Enemy3(node, pacman, self.enemy1)
+        self.enemy4 = Enemy4(node, pacman)
+        self.ghosts = [self.enemy1, self.enemy2, self.enemy3, self.enemy4]
         self.startNode = node
 
     def __iter__(self):

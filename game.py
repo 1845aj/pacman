@@ -14,18 +14,29 @@ from pause import Pause
 
 class Game:
     def __init__(self, screen):
+        # UI Text
+        self.UIFont = pygame.font.SysFont('Arial', 30)
+        self.bigFont = pygame.font.SysFont('Arial Bold', 72)
+
         self.reset()
 
+
     def reset(self):
+        self.isRunning = True
+        self.gameOver = False
+        self.gameLost = False
+
+        
+
         self.background = None
         self.screen = pygame.display.set_mode((448, 560))
         self.clock = pygame.time.Clock()
         self.pause = Pause(True)
-
+        
         self.wallImg = pygame.image.load("wall.png").convert()
-        self.data = self.readMazeData("mapDefault.txt")
-
         self.setBackground()
+        self.data = self.readMazeData("mapDefault.txt")
+        
         self.background = self.constructWalls(self.background)
         self.initialiseSounds()
 
@@ -37,29 +48,27 @@ class Game:
         self.pacman = Pacman(self.nodes.getNodeFromTiles(15, 26))
         self.pellets = PelletGroup("mapDefault.txt")
         self.ghosts = GhostGroup(self.nodes.getStartTempNode(), self.pacman)
-        self.ghosts.blinky.setStartNode(self.nodes.getNodeFromTiles(2+11.5, 0+14))
-        self.ghosts.pinky.setStartNode(self.nodes.getNodeFromTiles(2+11.5, 3+14))
-        self.ghosts.inky.setStartNode(self.nodes.getNodeFromTiles(0+11.5, 3+14))
-        self.ghosts.clyde.setStartNode(self.nodes.getNodeFromTiles(4+11.5, 3+14))
+        self.ghosts.enemy1.setStartNode(self.nodes.getNodeFromTiles(2+11.5, 0+14))
+        self.ghosts.enemy2.setStartNode(self.nodes.getNodeFromTiles(2+11.5, 3+14))
+        self.ghosts.enemy3.setStartNode(self.nodes.getNodeFromTiles(0+11.5, 3+14))
+        self.ghosts.enemy4.setStartNode(self.nodes.getNodeFromTiles(4+11.5, 3+14))
         spawnkey = self.nodes.constructKey(2+11.5, 3+14)
         self.ghosts.setSpawnNode(self.nodes.nodesLUT[spawnkey])
-        # self.sGameStart.play()
+        self.sGameStart.play()
         #* Game Session Data
         self.level = 0
         self.lives = 2
         self.score = 0
 
-        # UI Text
-        self.UIFont = pygame.font.SysFont('Arial', 30)
-
-
 
     def restartGame(self):
+        self.gameLost = True
         self.lives = 5
         self.level = 0
         self.pause.paused = True
         self.fruit = None
         self.reset()
+
 
     def resetLevel(self):
         self.pause.paused = True
@@ -67,11 +76,13 @@ class Game:
         self.ghosts.reset()
         self.fruit = None
 
+
     def nextLevel(self):
         self.showEntities()
         self.level += 1
         self.pause.paused = True
         self.reset()
+
 
     def setBackground(self):
         self.background = pygame.surface.Surface((640,640)).convert()
@@ -79,40 +90,36 @@ class Game:
 
 
     def update(self):
-            dt = self.clock.tick(30) / 1000.0       
-            self.pellets.update(dt)
-            if not self.pause.paused:
-                self.pacman.update(dt)
-                self.ghosts.update(dt)        
-                self.checkPelletEvents()
-                self.checkGhostEvents()
-            afterPauseMethod = self.pause.update(dt)
-            if afterPauseMethod is not None:
-                afterPauseMethod()
-            self.checkEvents()
-            self.render()
+        dt = self.clock.tick(30) / 1000.0       
+        self.pellets.update(dt)
+        if not self.pause.paused:
+            self.pacman.update(dt)
+            self.ghosts.update(dt)        
+            self.checkPelletEvents()
+            self.checkGhostEvents()
+        afterPauseMethod = self.pause.update(dt)
+        if afterPauseMethod is not None:
+            afterPauseMethod()
+        self.checkEvents()
+        self.render()
 
         
     def checkGhostEvents(self):
-            for ghost in self.ghosts:
-                if self.pacman.collideGhost(ghost):
-                    if ghost.mode.current is FREIGHT:
-                        self.pacman.visible = False
-                        ghost.visible = False
-                        self.pause.setPause(pauseTime=1, func=self.showEntities)
-                        ghost.startSpawn()
-                    elif ghost.mode.current is not SPAWN:
-                        if self.pacman.alive:
-                            self.lives -=  1
-                            self.pacman.die()
-                            self.ghosts.hide()
-                            if self.lives <= 0:
-                                self.pause.setPause(pauseTime=1, func=self.restartGame)
-                            else:
-                                self.pause.setPause(pauseTime=1, func=self.resetLevel)
-
-#! Change pause time back to 3.
-
+        for ghost in self.ghosts:
+            if self.pacman.collideGhost(ghost):
+                if ghost.mode.current is FREIGHT:
+                    ghost.reset()
+                    ghost.visible = False
+                    ghost.setSpeed(0)
+                elif ghost.mode.current is not SPAWN:
+                    if self.pacman.alive:
+                        self.lives -=  1
+                        self.pacman.die()
+                        self.ghosts.hide()
+                        if self.lives <= 0:
+                            self.pause.setPause(pauseTime=1, func=self.restartGame)
+                        else:
+                            self.pause.setPause(pauseTime=1, func=self.resetLevel)
 
 
     def checkEvents(self):
@@ -127,21 +134,28 @@ class Game:
                             self.showEntities()
                         else:
                             self.hideEntities()
+                if event.key == K_r:
+                    self.endGame()
+
 
     def render(self):
         self.screen.blit(self.background, (0, 0))
-        self.nodes.render(self.screen)
         self.pellets.render(self.screen)
         self.pacman.render(self.screen)
         self.ghosts.render(self.screen)
-
         self.drawUI()
+        if self.gameOver:
+            self.drawWinScreen()
+        elif self.gameLost:
+            self.drawGameOverScreen()
+        elif self.pause.paused:
+            self.drawPauseScreen()
+
         pygame.display.update()
 
 
     def readMazeData(self, file):
         mapArr = np.loadtxt(file, dtype='<U1')
-        print(mapArr)
         return mapArr
 
 
@@ -154,6 +168,7 @@ class Game:
 
         return background
 
+
     def checkPelletEvents(self):
         pellet = self.pacman.eatPellets(self.pellets.pelletList)
         if pellet:
@@ -161,13 +176,17 @@ class Game:
             self.pellets.pelletList.remove(pellet)
             self.score += 10
             if pellet.name == POWERPELLET:
+                self.sFruit.play()
                 self.score +=50
                 self.ghosts.startFreight()
+            else:
+                self.sChomp.play()
+
             if self.pellets.isEmpty():
+                self.gameOver = True
                 self.hideEntities()
-                self.pause.setPause(pauseTime=3, func=self.nextLevel)
-
-
+                self.drawWinScreen()
+                self.pause.setPause(pauseTime=10, func=self.endGame)
 
 
     def initialiseSounds(self):
@@ -175,16 +194,21 @@ class Game:
         self.sChomp = mixer.Sound('sounds/soundChomp.wav')
         self.sFruit = mixer.Sound('sounds/soundFruit.wav')
 
+
     def showEntities(self):
         self.pacman.visible = True
         self.ghosts.show()
+
 
     def hideEntities(self):
         self.pacman.visible = False
         self.ghosts.hide()
 
 
-    #* UI Stuff
+    def endGame(self):
+        self.isRunning = False
+
+
     def drawUI(self):
         livesStr = "Lives: " + str(self.lives)
         livesText = self.UIFont.render(livesStr , True , (50,200,50))
@@ -194,5 +218,25 @@ class Game:
 
         self.screen.blit(scoreText, (0, 0))
         self.screen.blit(livesText, (200, 0))
-        
-        
+
+
+    def drawWinScreen(self):
+        winText = self.bigFont.render('You Win!' , True , (50,200,50))
+        self.screen.blit(winText, (120, 250))
+        subText = self.UIFont.render('Press the \'r\' key to return to menu.', True, (20,240,240))
+        self.screen.blit(subText, (35, 300))
+
+
+    def drawPauseScreen(self):
+        pauseText = self.bigFont.render('PAUSED' , True , (50,200,50))
+        pauseSubText = self.UIFont.render('\'SPACE\' key to continue!', True , (20,240,240))
+
+        self.screen.blit(pauseText, (120, 250))
+        self.screen.blit(pauseSubText, (90, 300))
+
+
+    def drawGameOverScreen(self):
+        mainText = self.bigFont.render('Game Over!' , True , (50,200,50))
+        self.screen.blit(mainText, (120, 250))
+        subtext = self.UIFont.render('\'SPACE\' key to continue!', True , (20,240,240))
+        self.screen.blit(subtext, (35, 300))

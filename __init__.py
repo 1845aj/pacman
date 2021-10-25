@@ -16,6 +16,8 @@ def main():
     pygame.display.set_caption("Pacman")
 
     # create a surface
+    running = True
+    confMode = False
     screen = pygame.display.set_mode((480, 640))
 
     # create menu obj
@@ -28,8 +30,6 @@ def main():
     # classic or random map
     isRand = False
 
-    running = True
-    confMode = False
     while running:
         # event handling
         for event in pygame.event.get():
@@ -41,8 +41,7 @@ def main():
             if event.type == pygame.MOUSEBUTTONDOWN:
                 mousePos = pygame.mouse.get_pos()
 
-
-                #? Config mouse click handler
+                #* Config mouse click handler
                 if confMode == True:
                     if conf.buttonClicked(mouse=mousePos) == 1:
                         print("classic")
@@ -55,15 +54,15 @@ def main():
                     if conf.buttonClicked(mouse=mousePos) == 0:
                         print("empty click")
                 
-
-                #? Main menu mouse click handler
+                #* Main menu mouse click handler
                 else:
                     # exit clicked
                     if menu.buttonClicked(mouse=mousePos) == 1:
                         running = False
 
-                    #config clicked
+                    # config clicked
                     if menu.buttonClicked(mouse=mousePos) == 2:
+                        print('asdasds')
                         conf.showUI(screen=screen)
                         confMode = True
                  
@@ -74,12 +73,12 @@ def main():
                         screen = pygame.display.set_mode((640, 640))
                         # create game object
                         game = Game(screen=screen)
-                        # dont actually need this but could use to return to menu?
-                        gameRunning = True
-
                         #* Game loop
-                        while gameRunning:
+                        while game.isRunning:
                             game.update()
+                        screen = pygame.display.set_mode((480, 640))
+                        menu.showUI(screen)
+                        break
               
             # refresh display
             pygame.display.update()

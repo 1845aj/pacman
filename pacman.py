@@ -71,7 +71,6 @@ class Pacman(Entity):
     def eatPellets(self, pelletList):
         for pellet in pelletList:
             if self.collideCheck(pellet):
- 
                 return pellet
         return None
     
